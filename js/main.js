@@ -1,12 +1,13 @@
 /**
  * IMPACTO DIGITAL — Scripts Oficiais de Conversão & UX
- * Padrão Severino & Ricardo
+ * Padrão Severino & Ricardo (Inspirado no Modelo RGB)
  */
 
 document.addEventListener("DOMContentLoaded", () => {
   initNavbarScroll();
   initWhatsAppWidget();
   initFaqAccordion();
+  initContactForm();
 });
 
 /* ==========================================================================
@@ -17,7 +18,7 @@ function initNavbarScroll() {
   if (!header) return;
 
   window.addEventListener("scroll", () => {
-    if (window.scrollY > 30) {
+    if (window.scrollY > 40) {
       header.classList.add("scrolled");
     } else {
       header.classList.remove("scrolled");
@@ -30,22 +31,20 @@ function initNavbarScroll() {
    ========================================================================== */
 function initWhatsAppWidget() {
   const config = {
-    // Número oficial para conversão (exemplo internacional Brasil)
-    numero: "5511999999999", 
+    numero: "5511999999999", // Número comercial oficial
     diasSemana: [1, 2, 3, 4, 5], // Segunda a Sexta
-    horaAbertura: 8.5, // 08:30
-    horaFechamento: 18.5, // 18:30
+    horaAbertura: 8.0, // 08:00
+    horaFechamento: 18.0, // 18:00
     sabadoAbre: true,
-    sabadoFechamento: 13.0 // 13:00
+    sabadoFechamento: 12.0 // 12:00
   };
 
   const agora = new Date();
-  const diaSemana = agora.getDay(); // 0 = Domingo, 1 = Segunda ... 6 = Sábado
+  const diaSemana = agora.getDay();
   const horaDecimal = agora.getHours() + (agora.getMinutes() / 60);
 
   let isOnline = false;
 
-  // Verificação de horário de expediente
   if (config.diasSemana.includes(diaSemana) && horaDecimal >= config.horaAbertura && horaDecimal < config.horaFechamento) {
     isOnline = true;
   } else if (config.sabadoAbre && diaSemana === 6 && horaDecimal >= config.horaAbertura && horaDecimal < config.sabadoFechamento) {
@@ -61,41 +60,64 @@ function initWhatsAppWidget() {
   if (isOnline) {
     dotEl.className = "wa-status-dot online";
     textEl.textContent = "Online Agora";
-    const msg = encodeURIComponent("Olá! Vim pelo site da Impacto Digital e gostaria de um diagnóstico gratuito para meu negócio.");
+    const msg = encodeURIComponent("Olá! Estou no site da Impacto Digital e gostaria de solicitar um diagnóstico estratégico para minha empresa.");
     linkEl.href = `https://wa.me/${config.numero}?text=${msg}`;
   } else {
     linkEl.classList.add("offline-mode");
     dotEl.className = "wa-status-dot offline";
     textEl.textContent = "Deixe sua Mensagem";
-    const msg = encodeURIComponent("Olá! Acessei o site da Impacto Digital fora do horário de atendimento e gostaria de solicitar um contato.");
+    const msg = encodeURIComponent("Olá! Acessei o site da Impacto Digital fora do expediente e gostaria de agendar uma reunião comercial.");
     linkEl.href = `https://wa.me/${config.numero}?text=${msg}`;
   }
 }
 
 /* ==========================================================================
-   3. FAQ ACCORDION (INTERATIVO)
+   3. FAQ ACCORDION INTERATIVO
    ========================================================================== */
 function initFaqAccordion() {
-  const faqQuestions = document.querySelectorAll(".faq-question");
+  const toggles = document.querySelectorAll(".faq-toggle");
 
-  faqQuestions.forEach(btn => {
+  toggles.forEach(btn => {
     btn.addEventListener("click", () => {
-      const item = btn.parentElement;
-      const answer = item.querySelector(".faq-answer");
-      const isOpen = item.classList.contains("active");
+      const box = btn.parentElement;
+      const content = box.querySelector(".faq-content");
+      const isActive = box.classList.contains("active");
 
-      // Fecha todos os outros itens
-      document.querySelectorAll(".faq-item").forEach(other => {
-        other.classList.remove("active");
-        const otherAnswer = other.querySelector(".faq-answer");
-        if (otherAnswer) otherAnswer.style.maxHeight = null;
+      document.querySelectorAll(".faq-box").forEach(b => {
+        b.classList.remove("active");
+        const c = b.querySelector(".faq-content");
+        if (c) c.style.maxHeight = null;
       });
 
-      // Abre ou fecha o atual
-      if (!isOpen) {
-        item.classList.add("active");
-        answer.style.maxHeight = answer.scrollHeight + 30 + "px";
+      if (!isActive) {
+        box.classList.add("active");
+        content.style.maxHeight = content.scrollHeight + 30 + "px";
       }
     });
+  });
+}
+
+/* ==========================================================================
+   4. FORMULÁRIO DE PROPOSTA RÁPIDA (ENCAMINHA PARA WHATSAPP)
+   ========================================================================== */
+function initContactForm() {
+  const form = document.getElementById("lead-form");
+  if (!form) return;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nome = document.getElementById("form-nome").value.trim();
+    const empresa = document.getElementById("form-empresa").value.trim();
+    const servico = document.getElementById("form-servico").value;
+    const whats = document.getElementById("form-whats").value.trim();
+
+    const mensagem = `*Solicitação de Diagnóstico — Impacto Digital*\n\n` +
+      `*Nome:* ${nome}\n` +
+      `*Empresa:* ${empresa}\n` +
+      `*Interesse:* ${servico}\n` +
+      `*WhatsApp:* ${whats}`;
+
+    const urlWa = `https://wa.me/5511999999999?text=${encodeURIComponent(mensagem)}`;
+    window.open(urlWa, "_blank");
   });
 }
